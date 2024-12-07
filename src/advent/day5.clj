@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]
             [clojure.string :as str]))
 
-(def input "resources/day5/small.txt")
+(def input "resources/day5/input.txt")
 
 (def rules
   (->> (slurp input)
@@ -37,9 +37,8 @@
   (->> (filter valid-page-set page-sets)
        (map middle-page)
        (reduce +)))
-
 (defn find-bad-rules [pages]
-  (filter (complement (partial satisfies-rule pages)) rules))
+  (filter #(not (satisfies-rule pages %)) rules))
 
 (defn swap [items [a b]]
   (let [ia (.indexOf items a)
@@ -48,23 +47,15 @@
         (assoc ib a))))
 
 (defn fix-order [pages]
-  (let [bad-rules (find-bad-rules pages)
-        swapped (map #(swap pages %) bad-rules)]
-    (if
-      (empty? (find-bad-rules swapped)) swapped
-      (recur swapped))))
+  (let [bad-rule (first (find-bad-rules pages))]
+    (if (nil? bad-rule)
+      pages
+      (recur (swap pages bad-rule)))))
 
-
-(comment
-
-  (fix-order (nth page-sets 5))
-
-  (filter valid-page-set page-sets)
-
+(defn part2 []
   (->> (filter (complement valid-page-set) page-sets)
-       (map fix-order)))
-       ;(reduce +)))
-
-
+       (map fix-order)
+       (map middle-page)
+       (reduce +)))
 
 
