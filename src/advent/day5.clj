@@ -1,10 +1,23 @@
 (ns advent.day5
-  (:require [advent.utils :as u]))
+  (:require [advent.utils :as u]
+            [clojure.string :as str]))
 
-(def chars
-  (->> (u/read-lines "resources/day5/input.txt")))
+(def input "resources/day5/small.txt")
 
-(comment
+(def rules
+  (->> (slurp input)
+       (#(str/split % #"\s\n"))
+       (first)
+       (str/split-lines)
+       (map #(->> (u/split-and-trim % #"\|") (mapv u/parse-int)))))
+
+(def pages
+  (->> (slurp input)
+       (#(str/split % #"\s\n"))
+       (second)
+       (str/split-lines)
+       (map #(->> (u/split-and-trim % #",") (mapv u/parse-int)))))
+
+(comment)
 
 
-  )
