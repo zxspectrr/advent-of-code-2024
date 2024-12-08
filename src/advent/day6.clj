@@ -12,8 +12,8 @@
         (flatten))
    :direction :up})
 
-(defn find-starting-point []
-  (-> (filter #(= (:char %) \^) (:grid initial-state)) (first)))
+(defn find-starting-point [grid]
+  (-> (filter #(= (:char %) \^) grid) (first)))
 
 (defn xy [m] ((juxt :x :y) m))
 
@@ -27,8 +27,8 @@
     [max-x max-y]))
 
 (defn start []
-  (let [guard (find-starting-point)
-        grid (:grid initial-state)
+  (let [grid (:grid initial-state)
+        guard (find-starting-point grid)
         updated-grid (replace-grid-item grid (assoc guard :char \X))]
     (-> (assoc initial-state :grid updated-grid)
         (assoc :position [(:x guard) (:y guard)])
@@ -36,7 +36,7 @@
         (assoc :boundaries (boundaries updated-grid)))))
 ;
 (defn find-char [grid [x y]]
-  (-> (filter #(and (= (:x %) x) (= (:y %) y)) grid)
+  (-> (filter #(= (xy %) [x y]) grid)
       (first)))
 
 (defn next-position [position direction]
