@@ -4,7 +4,7 @@
 
 (def initial-state
   {:grid
-   (->> (u/read-lines "resources/day6/input.txt")
+   (->> (u/read-lines "resources/day6/small.txt")
         (map-indexed
           (fn [idx-y line]
             (map-indexed
@@ -16,9 +16,8 @@
   (-> (filter #(= (:char %) \^) (:grid initial-state)) (first)))
 
 (defn replace-grid-item [grid item]
-  (-> (filter #(or (not= (:x %) (:x item))
-                   (not= (:y %) (:y item)))
-              grid)
+  (-> (filter #(not= [(:x %) (:y %)]
+                     [(:x item) (:y item)]) grid)
       (conj item)))
 
 (defn boundaries [grid]
@@ -94,6 +93,7 @@
        (dec)))
 
 (comment
+  ((juxt :a :b) {:a 1 :b 2})
 
 
   ,)
