@@ -15,9 +15,10 @@
 (defn find-starting-point []
   (-> (filter #(= (:char %) \^) (:grid initial-state)) (first)))
 
+(defn xy [m] ((juxt :x :y) m))
+
 (defn replace-grid-item [grid item]
-  (-> (filter #(not= [(:x %) (:y %)]
-                     [(:x item) (:y item)]) grid)
+  (-> (filter #(not= (xy %) (xy item)) grid)
       (conj item)))
 
 (defn boundaries [grid]
