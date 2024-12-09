@@ -2,17 +2,15 @@
   (:require [advent.utils :as u]))
 
 (defn load-grid []
-   (->> (u/read-lines "resources/day6/input.txt")
-        (mapv
-          (fn [line]
-            (reduce conj [] line)))))
+   (->> (u/read-lines "resources/day6/small.txt")
+        (mapv #(reduce conj [] %))))
+
 
 (defn flatten-to-maps [grid]
   (->> (map-indexed (fn [idxy ys]
                       (map-indexed (fn [idxx xs] {:char xs :x idxx :y idxy }) ys))
                     grid)
-       (flatten)
-       (mapv identity)))
+       (flatten)))
 
 (defn draw-grid [state]
   (mapv #(println (apply str %)) (:grid state)))
@@ -47,7 +45,6 @@
         (assoc :start-position guard-position)
         (assoc :step-count 0)
         (assoc :direction :up)
-        (assoc :step-count 0)
         (assoc :boundaries (get-boundaries updated-grid))
         (assoc :collision-count {}))))
 
@@ -117,18 +114,15 @@
         (assoc next :terminal-state terminal-state)
         (recur next))))
 
-(defn part1 []
-  (->> (walk (start))
-       :grid
-       (flatten-to-maps)
-       (filter #(= (:char %) \X))
-       (count)))
-
 (defn find-guard-steps [final-state]
   (->> (:grid final-state)
        (flatten-to-maps)
-       (filter #(= (:char %) \X))
-       (mapv identity)))
+       (filter #(= (:char %) \X))))
+
+(defn part1 []
+  (->> (walk (start))
+       (find-guard-steps)
+       (count)))
 
 (defn preview-path [obstacle-position state]
   (let [new-state (replace-grid-item-state state obstacle-position \o)]
