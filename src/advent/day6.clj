@@ -75,16 +75,23 @@
 
 (defn finished? [state]
   (let [[x y] (:position state)
-        [max-x max-y] (:boundaries state)]
-    (or (> x max-x)
-        (> y max-y)
-        (< x 0)
-        (< y 0))))
+        [max-x max-y] (:boundaries state)
+        outside-room? (or (> x max-x)
+                          (> y max-y)
+                          (< x 0)
+                          (< y 0))
+        back-to-start? (and (= [x y] (:start-position state))
+                            (= (:direction state) :up))]
+    (cond outside-room? :finished
+          back-to-start? :restarted
+          :else nil)))
+
 
 (defn walk [state]
-  (let [next (tick state)]
-    (if (finished? next)
-      next
+  (let [next (tick state)
+        terminal-state (finished? next)]
+    (if terminal-state
+      (assoc next :terminal-state terminal-state)
       (recur next))))
 
 (defn part1 []
@@ -93,6 +100,9 @@
        (filter #(= (:char %) \X))
        (count)
        (dec)))
+
+(defn part2 []
+  (->> (walk (start))))
 
 (comment
   ((juxt :a :b) {:a 1 :b 2})
