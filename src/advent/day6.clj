@@ -97,7 +97,7 @@
       (step state direction))))
 
 (defn in-loop? [state]
-  (> (get-in state [:collision-count (get-collision-count-key state)] 0) 5))
+  (> (get-in state [:collision-count (get-collision-count-key state)] 0) 1))
 
 (defn finished? [state]
   (let [[y x] (:position state)
