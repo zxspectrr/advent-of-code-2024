@@ -27,7 +27,7 @@
       grid)))
 
 (defn replace-grid-item-state [state position char]
-  (assoc state :grid (replace-grid-item (:grid state) position char)))
+  (update state :grid #(replace-grid-item % position char)))
 
 (defn get-boundaries [grid]
   (let [as-maps (flatten-to-maps grid)
