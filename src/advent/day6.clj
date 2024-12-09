@@ -2,67 +2,63 @@
   (:require [advent.utils :as u]))
 
 (defn load-grid []
-   (->> (u/read-lines "resources/day6/input.txt")
-        (map-indexed
-          (fn [idx-y line]
-            (map-indexed
-              (fn [idx-x char] {:char char :x idx-x :y idx-y}) line)))
-        (flatten)))
+   (->> (u/read-lines "resources/day6/small.txt")
+        (mapv
+          (fn [line]
+            (reduce conj [] line)))))
+
+(defn flatten-to-maps [grid]
+  (->> (map-indexed (fn [idxy ys]
+                      (map-indexed (fn [idxx xs] {:char xs :x idxx :y idxy }) ys))
+                    grid)
+       (flatten)
+       (mapv identity)))
 
 (defn draw-grid [state]
-  (let [grid (:grid state)
-        ys (-> (map :y grid) set vec sort)]
-    (->> (mapv (fn [yy]
-                 (->> (filter (fn [grid-item]
-                                (= (:y grid-item) yy))
-                              grid)
-                      (sort-by :x)
-                      (map :char)
-                      (apply str)))
-               ys)
-         (mapv #(do (println %) %)))))
+  (mapv #(println (apply str %)) (:grid state)))
 
 (defn find-starting-point [grid]
-  (-> (filter #(= (:char %) \^) grid) (first)))
+  (->> (flatten-to-maps grid)
+       (filter #(= (:char %) \^))
+       (first)
+       ((fn [{:keys [y x]}] [y x]))))
 
-(defn xy [m] ((juxt :x :y) m))
+(defn replace-grid-item [grid position char]
+  (let [[y x] position]
+    (if (and (>= y 0) (>= x 0))
+      (assoc-in grid position char)
+      grid)))
 
-(defn replace-grid-item [grid item]
-  (-> (filter #(not= (xy %) (xy item)) grid)
-      (conj item)))
-
-(defn replace-grid-item-state [state item]
-  (assoc state :grid (replace-grid-item (:grid state) item)))
+(defn replace-grid-item-state [state position char]
+  (assoc state :grid (replace-grid-item (:grid state) position char)))
 
 (defn get-boundaries [grid]
-  (let [max-x (->> (map :x grid) (apply max))
-        max-y (->> (map :y grid) (apply max))]
-    [max-x max-y]))
+  (let [as-maps (flatten-to-maps grid)
+        max-x (->> (map :x as-maps) (apply max))
+        max-y (->> (map :y as-maps) (apply max))]
+    [max-y max-x]))
 
 (defn start []
   (let [grid (load-grid)
-        guard (find-starting-point grid)
-        updated-grid (replace-grid-item grid (assoc guard :char \X))]
+        guard-position (find-starting-point grid)
+        updated-grid (replace-grid-item grid guard-position \X)]
     (-> { :grid updated-grid}
-        (assoc :position (xy guard))
-        (assoc :start-position (xy guard))
+        (assoc :position guard-position)
+        (assoc :start-position guard-position)
         (assoc :step-count 0)
         (assoc :direction :up)
         (assoc :step-count 0)
         (assoc :boundaries (get-boundaries updated-grid))
         (assoc :collision-count {}))))
-;
-(defn find-char [grid [x y]]
-  (-> (filter #(= (xy %) [x y]) grid)
-      (first)))
+
 
 (defn find-next-position [position direction]
-  (let [[x y] position]
+  (let [[y x] position]
     (case direction
-      :up [x (dec y)]
-      :down [x (inc y)]
-      :left [(dec x) y]
-      :right [(inc x) y])))
+      :up [(dec y) x]
+      :down [(inc y) x]
+      :left [y (dec x)]
+      :right [y (inc x)])))
 
 (defn turn-right [direction]
   (case direction
@@ -74,8 +70,7 @@
 (defn step [state direction]
   (let [{:keys [grid position]} state
         next-pos (find-next-position position direction)
-        next-point (find-char grid next-pos)
-        updated-grid (replace-grid-item grid (assoc next-point :char \X))]
+        updated-grid (replace-grid-item grid next-pos \X)]
     (-> (assoc state :position next-pos)
         (update :step-count inc)
         (assoc :grid updated-grid))))
@@ -93,8 +88,8 @@
 (defn tick [state]
   (let [{:keys [grid position direction]} state
         next-pos (find-next-position position direction)
-        next-point (find-char grid next-pos)
-        collide? (or (= (:char next-point) \#) (= (:char next-point) \O))]
+        next-point (get-in grid next-pos)
+        collide? (or (= next-point \#) (= next-point \o))]
     (if collide?
       (-> (update-collision-count state)
           (assoc :direction (turn-right direction))
@@ -105,8 +100,8 @@
   (> (get-in state [:collision-count (get-collision-count-key state)] 0) 5))
 
 (defn finished? [state]
-  (let [[x y] (:position state)
-        [max-x max-y] (:boundaries state)
+  (let [[y x] (:position state)
+        [max-y max-x] (:boundaries state)
         outside-room? (or (> x max-x)
                           (> y max-y)
                           (< x 0)
@@ -118,24 +113,25 @@
 (defn walk [state]
   (let [next (tick state)
         terminal-state (finished? next)]
-      (if (or terminal-state (= (:step-count next) 10000))
-        (-> (assoc next :terminal-state terminal-state)
-            (assoc :grid (filter #(:x %) (:grid next))))
+      (if terminal-state
+        (assoc next :terminal-state terminal-state)
         (recur next))))
 
 (defn part1 []
   (->> (walk (start))
        :grid
+       (flatten-to-maps)
        (filter #(= (:char %) \X))
        (count)))
+
 (defn find-guard-steps [final-state]
   (->> (:grid final-state)
-       (filter #(= (:char %) \X))))
+       (flatten-to-maps)
+       (filter #(= (:char %) \X))
+       (mapv identity)))
 
 (defn preview-path [obstacle-position state]
-  (let [[ox oy] obstacle-position
-        obstacle {:char \O :x ox :y oy}
-        new-state (replace-grid-item-state state obstacle)]
+  (let [new-state (replace-grid-item-state state obstacle-position \o)]
     (->> (walk new-state)
          (#(do {:pos obstacle-position
                 :terminal-state (:terminal-state %)})))))
@@ -144,9 +140,9 @@
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
-    (map-indexed (fn [idx x]
+    (map-indexed (fn [idx step]
                    (do (println idx)
-                       (preview-path (xy x) starting-state)))
+                      (preview-path ((juxt :y :x) step) starting-state)))
                  guard-steps)))
 
 (defn part2 []
@@ -161,10 +157,16 @@
 
   (def state (start))
 
+  (tick (start))
 
   (def test-state (start))
 
-  (def test-state (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
+  (def test-state (replace-grid-item-state (start) [1 8] \o))
+
+  (draw-grid test-state)
+
+  (walk test-state)
+  (walk (replace-grid-item-state (start) [9 7] \O))
 
   (walk (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
 
@@ -173,6 +175,10 @@
         ;(println (:terminal-state next))
         (def test-state next)))
 
+  (def p [1 1])
+  (assoc-in [[1 2 3] [2 3 4] [3 4 5]] p 7)
+
+  (get-in [1] [-1])
 
  ,)
 
