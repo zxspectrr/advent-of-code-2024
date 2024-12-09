@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (defn load-grid []
-   (->> (u/read-lines "resources/day6/small.txt")
+   (->> (u/read-lines "resources/day6/input.txt")
         (mapv
           (fn [line]
             (reduce conj [] line)))))
