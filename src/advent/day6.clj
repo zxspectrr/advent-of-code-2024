@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (defn load-grid []
-   (->> (u/read-lines "resources/day6/small.txt")
+   (->> (u/read-lines "resources/day6/input.txt")
         (map-indexed
           (fn [idx-y line]
             (map-indexed
@@ -144,8 +144,10 @@
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
-    (map #(preview-path (xy %) starting-state)
-         guard-steps)))
+    (map-indexed (fn [idx x]
+                   (do (println idx)
+                       (preview-path (xy x) starting-state)))
+                 guard-steps)))
 
 (defn part2 []
   (->> (walk (start))
