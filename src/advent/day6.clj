@@ -125,15 +125,13 @@
        (count)))
 
 (defn preview-path [obstacle-position state]
-  (let [new-state (replace-grid-item-state state obstacle-position \o)]
-    (->> (walk new-state)
-         (:terminal-state))))
+  (->> (replace-grid-item-state state obstacle-position \o)
+       (walk)
+       (:terminal-state)))
 
 (defn check-guard-path [final-state]
-  (let [starting-state (start)
-        guard-steps (find-guard-steps final-state)]
-    (map #(preview-path ((juxt :y :x) %) starting-state)
-         guard-steps)))
+  (map #(preview-path ((juxt :y :x) %) (start))
+       (find-guard-steps final-state)))
 
 (defn part2 []
   (->> (start)
