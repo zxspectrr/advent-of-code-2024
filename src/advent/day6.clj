@@ -71,13 +71,13 @@
   (let [{:keys [position direction]} state
         collision-key [position direction]]
     (update-in state [:collision-count collision-key]
-               (fn [c] (if c (inc c) 1)))))
+               #(if % (inc %) 1))))
 
 (defn step [state direction]
   (let [position (:position state)
         next-pos (find-next-position position direction)]
     (-> (assoc state :position next-pos)
-        (update :grid (fn [grid] (replace-grid-item grid next-pos \X)))
+        (update :grid #(replace-grid-item % next-pos \X))
         (update :step-count inc))))
 
 (defn tick [state]
