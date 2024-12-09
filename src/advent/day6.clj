@@ -91,18 +91,22 @@
   (let [next (tick state)
         terminal-state (finished? next)]
     (if terminal-state
-      (assoc next :terminal-state terminal-state)
+      (-> (assoc next :terminal-state terminal-state)
+          (assoc :grid (filter #(:x %) (:grid next))))
       (recur next))))
 
 (defn part1 []
   (->> (walk (start))
        :grid
        (filter #(= (:char %) \X))
-       (count)
-       (dec)))
+       (count)))
 
 (defn part2 []
-  (->> (walk (start))))
+  (->> (walk (start))
+       (#(let [grid (:grid %)
+               steps (filter (fn [l] (= (:char l) \X)) grid)]
+           steps))
+       (count)))
 
 (comment
   ((juxt :a :b) {:a 1 :b 2})
