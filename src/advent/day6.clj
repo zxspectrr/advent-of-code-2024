@@ -5,7 +5,6 @@
    (->> (u/read-lines "resources/day6/small.txt")
         (mapv #(reduce conj [] %))))
 
-
 (defn flatten-to-maps [grid]
   (->> (map-indexed (fn [idxy ys]
                       (map-indexed (fn [idxx xs] {:char xs :x idxx :y idxy }) ys))
@@ -47,7 +46,6 @@
         (assoc :direction :up)
         (assoc :boundaries (get-boundaries updated-grid))
         (assoc :collision-count {}))))
-
 
 (defn find-next-position [position direction]
   (let [[y x] position]
