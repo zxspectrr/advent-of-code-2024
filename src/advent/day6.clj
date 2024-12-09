@@ -10,6 +10,19 @@
               (fn [idx-x char] {:char char :x idx-x :y idx-y}) line)))
         (flatten)))
 
+(defn draw-grid [state]
+  (let [grid (:grid state)
+        ys (-> (map :y grid) set vec sort)]
+    (->> (mapv (fn [yy]
+                 (->> (filter (fn [grid-item]
+                                (= (:y grid-item) yy))
+                              grid)
+                      (sort-by :x)
+                      (map :char)
+                      (apply str)))
+               ys)
+         (mapv #(do (println %) %)))))
+
 (defn find-starting-point [grid]
   (-> (filter #(= (:char %) \^) grid) (first)))
 
@@ -18,6 +31,9 @@
 (defn replace-grid-item [grid item]
   (-> (filter #(not= (xy %) (xy item)) grid)
       (conj item)))
+
+(defn replace-grid-item-state [state item]
+  (assoc state :grid (replace-grid-item (:grid state) item)))
 
 (defn get-boundaries [grid]
   (let [max-x (->> (map :x grid) (apply max))
@@ -65,13 +81,16 @@
         (assoc :grid updated-grid))))
 
 (defn tick [state]
-  (let [{:keys [grid position direction]} state
-        next-pos (find-next-position position direction)
-        next-point (find-char grid next-pos)
-        collide? (= (:char next-point) \#)]
-    (if collide?
-      (tick (assoc state :direction (turn-right direction)))
-      (step state direction))))
+  (do
+    (println "------------------")
+    (draw-grid state)
+    (let [{:keys [grid position direction]} state
+          next-pos (find-next-position position direction)
+          next-point (find-char grid next-pos)
+          collide? (= (:char next-point) \#)]
+      (if collide?
+        (tick (assoc state :direction (turn-right direction)))
+        (step state direction)))))
 
 (defn finished? [state]
   (let [[x y] (:position state)
@@ -86,34 +105,19 @@
           back-to-start? :restarted
           :else nil)))
 
-
 (defn walk [state]
   (let [next (tick state)
-        terminal-state (finished? next)]
-    (if terminal-state
-      (-> (assoc next :terminal-state terminal-state)
-          (assoc :grid (filter #(:x %) (:grid next))))
-      (recur next))))
+        terminal-state (or (finished? next) (= 100 (:step-count next)))]
+      (if terminal-state
+        (-> (assoc next :terminal-state terminal-state)
+            (assoc :grid (filter #(:x %) (:grid next))))
+        (recur next))))
 
 (defn part1 []
   (->> (walk (start))
        :grid
        (filter #(= (:char %) \X))
        (count)))
-
-(defn draw-grid [grid]
-  (let [xs (-> (map :x grid) set vec sort)
-        ys (-> (map :y grid) set vec sort)]
-    (map (fn [yy]
-           (->> (filter (fn [grid-item]
-                          (= (:y grid-item) yy))
-                        grid)
-                (sort-by :x)
-                (map :char)
-                (apply str)))
-         ys)))
-
-
 (defn find-guard-steps [final-state]
   (->> (:grid final-state)
        (filter #(= (:char %) \X))))
@@ -121,22 +125,30 @@
 (defn preview-path [obstacle-position state]
   (let [[ox oy] obstacle-position
         obstacle {:char \# :x ox :y oy}
-        new-grid (replace-grid-item (:grid state) obstacle)
-        new-state (assoc state :grid new-grid)]
+        new-state (replace-grid-item-state state obstacle)]
     (:terminal-state (walk new-state))))
 
 (comment
   (draw-grid (:grid final-state))
   (def final-state (walk (start)))
 
-  (->> (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6})
-       (assoc final-state :grid)
-       (walk))
+  (tick (start))
+
+  (walk (start))
+
+  (draw-grid (start))
+
+  (def start-state (start))
+
+  (->> (replace-grid-item-state start-state {:char \# :x 3 :y 6})
+       (draw-grid))
+       ;(walk)
+       ;(draw-grid))
 
   (walk (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
 
   (->> (filter #(= (:x %) 3) (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
-       (sort-by :y)))
+       (sort-by :y)) ,)
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
@@ -151,9 +163,3 @@
   (->> (walk (start))
        (check-guard-path)))
 
-
-(comment
-  ((juxt :a :b) {:a 1 :b 2})
-
-
-  ,)
