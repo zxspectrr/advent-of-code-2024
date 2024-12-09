@@ -101,7 +101,8 @@
                           (> y max-y)
                           (< x 0)
                           (< y 0))]
-    (cond outside-room? :finished
+    (cond
+      outside-room? :finished
       (in-loop? state) :loop
       :else nil)))
 
