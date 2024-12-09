@@ -82,12 +82,12 @@
 
 (defn tick [state]
   (do
-    (println "------------------")
-    (draw-grid state)
+    ;(println (:step-count state))
+    ;(draw-grid state)
     (let [{:keys [grid position direction]} state
           next-pos (find-next-position position direction)
           next-point (find-char grid next-pos)
-          collide? (= (:char next-point) \#)]
+          collide? (or (= (:char next-point) \#) (= (:char next-point) \O))]
       (if collide?
         (tick (assoc state :direction (turn-right direction)))
         (step state direction)))))
@@ -99,16 +99,15 @@
                           (> y max-y)
                           (< x 0)
                           (< y 0))
-        back-to-start? (and (= [x y] (:start-position state))
-                            (= (:direction state) :up))]
+        starting-square? (= [x y] (:start-position state))]
     (cond outside-room? :finished
-          back-to-start? :restarted
+          starting-square? (if (= (:direction (tick state)) :up) :loop)
           :else nil)))
 
 (defn walk [state]
   (let [next (tick state)
-        terminal-state (or (finished? next) (= 100 (:step-count next)))]
-      (if terminal-state
+        terminal-state (finished? next)]
+      (if (or terminal-state (= (:step-count next) 10000))
         (-> (assoc next :terminal-state terminal-state)
             (assoc :grid (filter #(:x %) (:grid next))))
         (recur next))))
@@ -124,42 +123,66 @@
 
 (defn preview-path [obstacle-position state]
   (let [[ox oy] obstacle-position
-        obstacle {:char \# :x ox :y oy}
+        obstacle {:char \O :x ox :y oy}
         new-state (replace-grid-item-state state obstacle)]
-    (:terminal-state (walk new-state))))
-
-(comment
-  (draw-grid (:grid final-state))
-  (def final-state (walk (start)))
-
-  (tick (start))
-
-  (walk (start))
-
-  (draw-grid (start))
-
-  (def start-state (start))
-
-  (->> (replace-grid-item-state start-state {:char \# :x 3 :y 6})
-       (draw-grid))
-       ;(walk)
-       ;(draw-grid))
-
-  (walk (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
-
-  (->> (filter #(= (:x %) 3) (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
-       (sort-by :y)) ,)
+    (do
+      (draw-grid new-state)
+      (->> (walk new-state)
+           (#(do (draw-grid %) %))))))
+          ;(:terminal-state))))
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
     (map-indexed (fn [idx x]
-                   (println idx)
-                   (println x)
+                   ;(println idx)
+                   ;(println x)
                    (preview-path (xy x) starting-state))
                  [(first guard-steps)])))
 
 (defn part2 []
   (->> (walk (start))
        (check-guard-path)))
+
+
+(comment
+  (draw-grid (start))
+
+
+  (def test-state (start))
+
+  (def test-state (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
+
+  (let [next (tick test-state)]
+    (do (draw-grid next)
+        ;(println (:terminal-state next))
+        (def test-state next)))
+
+
+
+
+
+
+
+
+
+
+
+
+  (tick (start))
+
+  (walk (start))
+
+  (draw-grid (walk (start)))
+
+  (def start-state (start))
+
+  (->> (replace-grid-item-state start-state {:char \# :x 3 :y 6})
+       (walk))
+  ;(draw-grid))
+
+  (walk (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
+
+  (->> (filter #(= (:x %) 3) (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
+       (sort-by :y)) ,)
 
