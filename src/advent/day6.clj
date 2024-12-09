@@ -92,16 +92,26 @@
         (tick (assoc state :direction (turn-right direction)))
         (step state direction)))))
 
+
+(defn count-xs [state]
+  (->> (:grid state)
+      (filter #(= (:char %) \X))
+      (count)))
+
+(defn in-loop? [state]
+  (let [xcount (count-xs state)
+        next-xcount (count-xs (tick state))]
+    (= xcount next-xcount)))
+
 (defn finished? [state]
   (let [[x y] (:position state)
         [max-x max-y] (:boundaries state)
         outside-room? (or (> x max-x)
                           (> y max-y)
                           (< x 0)
-                          (< y 0))
-        starting-square? (= [x y] (:start-position state))]
+                          (< y 0))]
     (cond outside-room? :finished
-          starting-square? (if (= (:direction (tick state)) :up) :loop)
+          (in-loop? state) :loop
           :else nil)))
 
 (defn walk [state]
@@ -128,8 +138,8 @@
     (do
       (draw-grid new-state)
       (->> (walk new-state)
-           (#(do (draw-grid %) %))))))
-          ;(:terminal-state))))
+           (#(do (draw-grid %) %))
+          (:terminal-state)))))
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
@@ -138,20 +148,26 @@
                    ;(println idx)
                    ;(println x)
                    (preview-path (xy x) starting-state))
-                 [(first guard-steps)])))
+                 guard-steps)))
 
 (defn part2 []
   (->> (walk (start))
-       (check-guard-path)))
+       (check-guard-path)
+       (filter #(= :loop %))
+       (count)))
 
 
 (comment
   (draw-grid (start))
 
+  (def state (start))
+
 
   (def test-state (start))
 
   (def test-state (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
+
+  (walk (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
 
   (let [next (tick test-state)]
     (do (draw-grid next)
