@@ -133,52 +133,17 @@
 (defn preview-path [obstacle-position state]
   (let [new-state (replace-grid-item-state state obstacle-position \o)]
     (->> (walk new-state)
-         (#(do {:pos obstacle-position
-                :terminal-state (:terminal-state %)})))))
-         ;(:terminal-state))))
+         (:terminal-state))))
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
-    (map-indexed (fn [idx step]
-                   (do (println idx)
-                      (preview-path ((juxt :y :x) step) starting-state)))
-                 guard-steps)))
+    (map #(preview-path ((juxt :y :x) %) starting-state)
+         guard-steps)))
 
 (defn part2 []
   (->> (walk (start))
        (check-guard-path)
-       (filter #(= :loop (:terminal-state %)))
+       (filter #(= :loop %))
        (count)))
-
-
-(comment
-  (draw-grid (start))
-
-  (def state (start))
-
-  (tick (start))
-
-  (def test-state (start))
-
-  (def test-state (replace-grid-item-state (start) [1 8] \o))
-
-  (draw-grid test-state)
-
-  (walk test-state)
-  (walk (replace-grid-item-state (start) [9 7] \O))
-
-  (walk (replace-grid-item-state (start) {:char \O :x 7 :y 9}))
-
-  (let [next (tick test-state)]
-    (do (draw-grid next)
-        ;(println (:terminal-state next))
-        (def test-state next)))
-
-  (def p [1 1])
-  (assoc-in [[1 2 3] [2 3 4] [3 4 5]] p 7)
-
-  (get-in [1] [-1])
-
- ,)
 
