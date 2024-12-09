@@ -101,14 +101,51 @@
        (filter #(= (:char %) \X))
        (count)))
 
+(defn draw-grid [grid]
+  (let [xs (-> (map :x grid) set vec sort)
+        ys (-> (map :y grid) set vec sort)]
+    (map (fn [yy]
+           (->> (filter (fn [grid-item]
+                          (= (:y grid-item) yy))
+                        grid)
+                (sort-by :x)
+                (map :char)
+                (apply str)))
+         ys)))
+
+
 (defn find-guard-steps [final-state]
   (->> (:grid final-state)
        (filter #(= (:char %) \X))))
 
+(defn preview-path [obstacle-position state]
+  (let [[ox oy] obstacle-position
+        obstacle {:char \# :x ox :y oy}
+        new-grid (replace-grid-item (:grid state) obstacle)
+        new-state (assoc state :grid new-grid)]
+    (:terminal-state (walk new-state))))
+
+(comment
+  (draw-grid (:grid final-state))
+  (def final-state (walk (start)))
+
+  (->> (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6})
+       (assoc final-state :grid)
+       (walk))
+
+  (walk (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
+
+  (->> (filter #(= (:x %) 3) (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
+       (sort-by :y)))
+
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
-    guard-steps))
+    (map-indexed (fn [idx x]
+                   (println idx)
+                   (println x)
+                   (preview-path (xy x) starting-state))
+                 [(first guard-steps)])))
 
 (defn part2 []
   (->> (walk (start))
