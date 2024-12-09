@@ -90,14 +90,11 @@
 
 
 (defn count-xs [state]
-  (->> (:grid state)
-      (filter #(= (:char %) \X))
-      (count)))
+  (->> (:grid state) (filter #(= (:char %) \X)) (count)))
 
 (defn in-loop? [state]
-  (let [xcount (count-xs state)
-        next-xcount (count-xs (tick state))]
-    (= xcount next-xcount)))
+  (= (count-xs (tick (tick state)))
+     (count-xs state)))
 
 (defn finished? [state]
   (let [[x y] (:position state)
@@ -132,7 +129,9 @@
         obstacle {:char \O :x ox :y oy}
         new-state (replace-grid-item-state state obstacle)]
     (->> (walk new-state)
-         (:terminal-state))))
+         (#(do {:pos obstacle-position
+                :terminal-state (:terminal-state %)})))))
+         ;(:terminal-state))))
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
@@ -143,7 +142,7 @@
 (defn part2 []
   (->> (walk (start))
        (check-guard-path)
-       (filter #(= :loop %))
+       (filter #(= :loop (:terminal-state %)))
        (count)))
 
 
