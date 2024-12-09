@@ -62,15 +62,16 @@
     :down :left
     :left :up))
 
-(defn get-collision-count-key [state]
-  [(:position state) (:direction state)])
+(defn get-collision-count [state]
+  (let [{:keys [position direction]} state
+        collision-key [position direction]]
+    (get-in state [:collision-count collision-key] 0)))
 
 (defn update-collision-count [state]
-  (let [count-key (get-collision-count-key state)
-        collision-count (:collision-count state)
-        ccount (get collision-count count-key 0)
-        updated-count (assoc collision-count count-key (inc ccount))]
-    (assoc state :collision-count updated-count)))
+  (let [{:keys [position direction]} state
+        collision-key [position direction]]
+    (update-in state [:collision-count collision-key]
+               (fn [c] (if c (inc c) 1)))))
 
 (defn step [state direction]
   (let [position (:position state)
@@ -91,8 +92,7 @@
       (step state direction))))
 
 (defn in-loop? [state]
-  (let [collision-count (get-in state [:collision-count (get-collision-count-key state)] 0)]
-    (> collision-count 1)))
+  (> (get-collision-count state) 1))
 
 (defn finished? [state]
   (let [[y x] (:position state)
