@@ -49,7 +49,8 @@
         (assoc :step-count 0)
         (assoc :direction :up)
         (assoc :step-count 0)
-        (assoc :boundaries (get-boundaries updated-grid)))))
+        (assoc :boundaries (get-boundaries updated-grid))
+        (assoc :collision-count {}))))
 ;
 (defn find-char [grid [x y]]
   (-> (filter #(= (xy %) [x y]) grid)
@@ -79,22 +80,29 @@
         (update :step-count inc)
         (assoc :grid updated-grid))))
 
+(defn get-collision-count-key [state]
+  [(:position state) (:direction state)])
+
+(defn update-collision-count [state]
+  (let [count-key (get-collision-count-key state)
+        collision-count (:collision-count state)
+        ccount (get collision-count count-key 0)
+        updated-count (assoc collision-count count-key (inc ccount))]
+    (assoc state :collision-count updated-count)))
+
 (defn tick [state]
   (let [{:keys [grid position direction]} state
         next-pos (find-next-position position direction)
         next-point (find-char grid next-pos)
         collide? (or (= (:char next-point) \#) (= (:char next-point) \O))]
     (if collide?
-      (tick (assoc state :direction (turn-right direction)))
+      (-> (update-collision-count state)
+          (assoc :direction (turn-right direction))
+          (tick))
       (step state direction))))
 
-
-(defn count-xs [state]
-  (->> (:grid state) (filter #(= (:char %) \X)) (count)))
-
 (defn in-loop? [state]
-  (= (count-xs (tick (tick state)))
-     (count-xs state)))
+  (> (get-in state [:collision-count (get-collision-count-key state)] 0) 5))
 
 (defn finished? [state]
   (let [[x y] (:position state)
