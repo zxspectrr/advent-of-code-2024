@@ -2,15 +2,13 @@
   (:require [advent.utils :as u]
             [clojure.string :as str]))
 
-(def initial-state
-  {:grid
+(defn load-grid []
    (->> (u/read-lines "resources/day6/small.txt")
         (map-indexed
           (fn [idx-y line]
             (map-indexed
               (fn [idx-x char] {:char char :x idx-x :y idx-y}) line)))
-        (flatten))
-   :direction :up})
+        (flatten)))
 
 (defn find-starting-point [grid]
   (-> (filter #(= (:char %) \^) grid) (first)))
@@ -21,25 +19,28 @@
   (-> (filter #(not= (xy %) (xy item)) grid)
       (conj item)))
 
-(defn boundaries [grid]
+(defn get-boundaries [grid]
   (let [max-x (->> (map :x grid) (apply max))
         max-y (->> (map :y grid) (apply max))]
     [max-x max-y]))
 
 (defn start []
-  (let [grid (:grid initial-state)
+  (let [grid (load-grid)
         guard (find-starting-point grid)
         updated-grid (replace-grid-item grid (assoc guard :char \X))]
-    (-> (assoc initial-state :grid updated-grid)
-        (assoc :position [(:x guard) (:y guard)])
+    (-> { :grid updated-grid}
+        (assoc :position (xy guard))
+        (assoc :start-position (xy guard))
         (assoc :step-count 0)
-        (assoc :boundaries (boundaries updated-grid)))))
+        (assoc :direction :up)
+        (assoc :step-count 0)
+        (assoc :boundaries (get-boundaries updated-grid)))))
 ;
 (defn find-char [grid [x y]]
   (-> (filter #(= (xy %) [x y]) grid)
       (first)))
 
-(defn next-position [position direction]
+(defn find-next-position [position direction]
   (let [[x y] position]
     (case direction
       :up [x (dec y)]
@@ -56,7 +57,7 @@
 
 (defn step [state direction]
   (let [{:keys [grid position]} state
-        next-pos (next-position position direction)
+        next-pos (find-next-position position direction)
         next-point (find-char grid next-pos)
         updated-grid (replace-grid-item grid (assoc next-point :char \X))]
     (-> (assoc state :position next-pos)
@@ -65,7 +66,7 @@
 
 (defn tick [state]
   (let [{:keys [grid position direction]} state
-        next-pos (next-position position direction)
+        next-pos (find-next-position position direction)
         next-point (find-char grid next-pos)
         collide? (= (:char next-point) \#)]
     (if collide?
@@ -98,5 +99,3 @@
 
 
   ,)
-
-
