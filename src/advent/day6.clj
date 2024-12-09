@@ -101,12 +101,19 @@
        (filter #(= (:char %) \X))
        (count)))
 
+(defn find-guard-steps [final-state]
+  (->> (:grid final-state)
+       (filter #(= (:char %) \X))))
+
+(defn check-guard-path [final-state]
+  (let [starting-state (start)
+        guard-steps (find-guard-steps final-state)]
+    guard-steps))
+
 (defn part2 []
   (->> (walk (start))
-       (#(let [grid (:grid %)
-               steps (filter (fn [l] (= (:char l) \X)) grid)]
-           steps))
-       (count)))
+       (check-guard-path)))
+
 
 (comment
   ((juxt :a :b) {:a 1 :b 2})
