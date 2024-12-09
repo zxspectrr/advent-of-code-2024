@@ -65,12 +65,11 @@
     :left :up))
 
 (defn step [state direction]
-  (let [{:keys [grid position]} state
-        next-pos (find-next-position position direction)
-        updated-grid (replace-grid-item grid next-pos \X)]
+  (let [position (:position state)
+        next-pos (find-next-position position direction)]
     (-> (assoc state :position next-pos)
-        (update :step-count inc)
-        (assoc :grid updated-grid))))
+        (update :grid (fn [grid] (replace-grid-item grid next-pos \X)))
+        (update :step-count inc))))
 
 (defn get-collision-count-key [state]
   [(:position state) (:direction state)])
@@ -89,12 +88,13 @@
         collide? (or (= next-point \#) (= next-point \o))]
     (if collide?
       (-> (update-collision-count state)
-          (assoc :direction (turn-right direction))
+          (update :direction turn-right)
           (tick))
       (step state direction))))
 
 (defn in-loop? [state]
-  (> (get-in state [:collision-count (get-collision-count-key state)] 0) 1))
+  (let [collision-count (get-in state [:collision-count (get-collision-count-key state)] 0)]
+    (> collision-count 1)))
 
 (defn finished? [state]
   (let [[y x] (:position state)
@@ -104,8 +104,8 @@
                           (< x 0)
                           (< y 0))]
     (cond outside-room? :finished
-          (in-loop? state) :loop
-          :else nil)))
+      (in-loop? state) :loop
+      :else nil)))
 
 (defn walk [state]
   (let [next (tick state)
@@ -140,4 +140,3 @@
        (check-guard-path)
        (filter #(= :loop %))
        (count)))
-
