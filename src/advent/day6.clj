@@ -1,6 +1,5 @@
 (ns advent.day6
-  (:require [advent.utils :as u]
-            [clojure.string :as str]))
+  (:require [advent.utils :as u]))
 
 (defn load-grid []
    (->> (u/read-lines "resources/day6/small.txt")
@@ -81,16 +80,13 @@
         (assoc :grid updated-grid))))
 
 (defn tick [state]
-  (do
-    ;(println (:step-count state))
-    ;(draw-grid state)
-    (let [{:keys [grid position direction]} state
-          next-pos (find-next-position position direction)
-          next-point (find-char grid next-pos)
-          collide? (or (= (:char next-point) \#) (= (:char next-point) \O))]
-      (if collide?
-        (tick (assoc state :direction (turn-right direction)))
-        (step state direction)))))
+  (let [{:keys [grid position direction]} state
+        next-pos (find-next-position position direction)
+        next-point (find-char grid next-pos)
+        collide? (or (= (:char next-point) \#) (= (:char next-point) \O))]
+    (if collide?
+      (tick (assoc state :direction (turn-right direction)))
+      (step state direction))))
 
 
 (defn count-xs [state]
@@ -135,20 +131,14 @@
   (let [[ox oy] obstacle-position
         obstacle {:char \O :x ox :y oy}
         new-state (replace-grid-item-state state obstacle)]
-    (do
-      (draw-grid new-state)
-      (->> (walk new-state)
-           (#(do (draw-grid %) %))
-          (:terminal-state)))))
+    (->> (walk new-state)
+         (:terminal-state))))
 
 (defn check-guard-path [final-state]
   (let [starting-state (start)
         guard-steps (find-guard-steps final-state)]
-    (map-indexed (fn [idx x]
-                   ;(println idx)
-                   ;(println x)
-                   (preview-path (xy x) starting-state))
-                 guard-steps)))
+    (map #(preview-path (xy %) starting-state)
+         guard-steps)))
 
 (defn part2 []
   (->> (walk (start))
@@ -175,30 +165,5 @@
         (def test-state next)))
 
 
-
-
-
-
-
-
-
-
-
-
-  (tick (start))
-
-  (walk (start))
-
-  (draw-grid (walk (start)))
-
-  (def start-state (start))
-
-  (->> (replace-grid-item-state start-state {:char \# :x 3 :y 6})
-       (walk))
-  ;(draw-grid))
-
-  (walk (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
-
-  (->> (filter #(= (:x %) 3) (replace-grid-item (:grid final-state) {:char \# :x 3 :y 6}))
-       (sort-by :y)) ,)
+ ,)
 
