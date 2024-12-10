@@ -130,8 +130,10 @@
        (:terminal-state)))
 
 (defn check-guard-path [final-state]
-  (map #(preview-path ((juxt :y :x) %) (start))
-       (find-guard-steps final-state)))
+  (->> (find-guard-steps final-state)
+       (map #(preview-path ((juxt :y :x) %)
+                           (start)))))
+
 
 (defn part2 []
   (->> (start)
