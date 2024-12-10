@@ -9,40 +9,36 @@
                               (->> (u/split-and-trim b #" ")
                                    (map u/parse-int))])))))))
 
-(defn do-numbers [a b remaining]
+(defn do-numbers [a b remaining desired]
   (if (nil? b)
     a
     (map (fn [op]
              (let [result (op a b)]
                (if (empty? remaining)
                  result
-                 (do-numbers result (first remaining) (rest remaining)))))
-         [+ - * /])))
+                 (if (> result desired)
+                   nil
+                   (do-numbers result (first remaining) (rest remaining) desired)))))
+         [+ *])))
 
 
-(defn try-numbers [numbers desired]
+(defn try-numbers [desired numbers]
   (let [a (first numbers)
         b (second numbers)
-        remaining (rest (rest numbers))]
-    (->> (do-numbers a b remaining)
+        remaining (drop 2 numbers)]
+    (->> (do-numbers a b remaining desired)
          (flatten)
          (filter (partial = desired))
          (first))))
 
-
-(defn check-numbers [desired-result numbers]
-  (try-numbers numbers desired-result))
-
 (defn part1 []
   (->> (load-data)
-       (map-indexed (fn [idx x] (println idx) (apply check-numbers x)))
+       (map #(apply try-numbers %))
        (filter some?)
        (reduce +)))
 
 (comment
-
   (check-numbers 84277 [8 4 278])
-
   (apply check-numbers (first (load-data))))
 
 
