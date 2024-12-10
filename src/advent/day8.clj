@@ -32,7 +32,41 @@
                  (and (> v 1) (not= \. k))))
        (map (fn [[k _]] k))))
 
+(defn find-zone [source destination]
+  (let [distance-x (- (:x destination) (:x source))
+        distance-y (- (:y destination) (:y source))]
+    [(+ distance-x (:x destination))
+     (+ distance-y (:y destination))]))
+
+(defn zones-for-char [char chars-of-type]
+  (let [cot (filter #(= (:char %) (:char char)) chars)
+        siblings (filter #(not= % char) chars-of-type)]
+    (map #(find-zone char %) siblings)))
+
+(defn replace-grid-item [grid yx char]
+  (assoc-in grid yx char))
+
 (comment
+
+  (def zeros (filter #(= (:char %) \0) chars))
+
+  (->> (mapcat #(zones-for-char % zeros) zeros)
+       (set))
+
+  (def char (->> (filter #(= (:char %) \0) chars) (first)))
+
+  (->> (zones-for-char (first zeros) zeros)
+       (reduce
+         (fn [acc [x y]]
+           (replace-grid-item acc [y x] \#))
+         grid)
+       (draw-grid))
+
+
+  (let [candidates (filter #(= (:char %) \0) chars)
+        siblings ()])
+
+
   (get-unique-antenna-types)
 
 
