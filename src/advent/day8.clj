@@ -22,6 +22,11 @@
                 (map :char)))
          (range 0 (inc max-y)))))
 
+(defn draw-grid [grid]
+  (map #(do (println (apply str %)) %) grid))
+
+
+
 (comment
 
   (def maps (flatten-to-maps grid))
