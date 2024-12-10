@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (def chars
-  (->> (u/read-lines "resources/day8/small2.txt")
+  (->> (u/read-lines "resources/day8/small.txt")
        (map-indexed
          (fn [idx-y line]
            (map-indexed
@@ -11,8 +11,9 @@
 
 (defn within-bounds? [pos]
   (let [[x y] pos
-        max-x (->> (map :x chars) (reduce max))
-        max-y (->> (map :y chars) (reduce max))]
+        get-max (fn [k] (->> (map k chars) (reduce max)))
+        max-x (get-max :x)
+        max-y (get-max :y)]
     (and (<= x max-x) (<= y max-y) (>= x 0) (>= y 0))))
 
 (defn get-unique-antenna-types []
@@ -34,7 +35,7 @@
   (-> (find-distance source-xy destination-xy)
       (apply-distance destination-xy)
       (vector)
-      (#(filter within-bounds? %))))
+      (->> (filter within-bounds?))))
 
 (defn zones-for-char [char chars-of-type zone-fn]
   (let [siblings (filter #(not= % char) chars-of-type)]
