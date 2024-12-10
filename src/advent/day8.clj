@@ -43,8 +43,7 @@
      (+ distance-y (:y destination))]))
 
 (defn zones-for-char [char chars-of-type]
-  (let [cot (filter #(= (:char %) (:char char)) chars)
-        siblings (filter #(not= % char) chars-of-type)]
+  (let [siblings (filter #(not= % char) chars-of-type)]
     (map #(find-zone char %) siblings)))
 
 (defn replace-grid-item [grid yx char]
@@ -74,33 +73,9 @@
 
 (comment
 
-  (->> (get-unique-antenna-types)
-       (mapcat zones-for-character-type)
-       (set)
-       (count))
-       ;(draw-zones grid))
-
-  (->> (zones-for-character-type \A)
-       (draw-zones grid))
-
-  (def character \A)
-
-  (->> (mapcat #(zones-for-char % zeros) zeros)
-       (set)
-       (filter (fn [[x y]] (and (>= x 0) (>= y 0))))
-       (draw-zones grid))
-       ;(zones-for-char (first zeros) zeros)
-       ;(draw-zones grid))
 
 
+  (str "test"),)
 
-  (let [candidates (filter #(= (:char %) \0) chars)
-        siblings ()])
-
-
-  (get-unique-antenna-types)
-
-
-  (range 0 (inc 9)))
 
 
