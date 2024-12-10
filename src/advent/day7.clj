@@ -9,16 +9,11 @@
                               (->> (u/split-and-trim b #" ")
                                    (map u/parse-int))])))))))
 
-(defn join-numbers [a b]
-  (-> (str a b) u/parse-long))
-
 (defn do-numbers [operators a b remaining desired]
   (if (nil? b)
     a
     (map (fn [op]
-             (let [result (if (= op \|)
-                            (join-numbers a b)
-                            (op a b))]
+             (let [result (op a b)]
                (cond
                  (empty? remaining) result
                  (> result desired) nil
@@ -43,5 +38,8 @@
 (defn part1 []
   (solve [+ *]))
 
+(defn join-numbers [a b]
+  (-> (str a b) u/parse-long))
+
 (defn part2 []
-  (solve [\| + *]))
+  (solve [join-numbers + *]))
