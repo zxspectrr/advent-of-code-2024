@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (def grid
-  (->> (u/read-lines "resources/day8/small2.txt")
+  (->> (u/read-lines "resources/day8/input.txt")
        (mapv #(reduce conj [] %))))
 
 (defn flatten-to-maps [grid]
@@ -14,8 +14,12 @@
 (def chars
   (flatten-to-maps grid))
 
+(defn get-boundaries [maps]
+  [(->> (map :x maps) (reduce max))
+   (->> (map :y maps) (reduce max))])
+
 (defn maps-to-grid [maps]
-  (let [max-y (->> (map :y maps) (reduce max))]
+  (let [[_ max-y] (get-boundaries maps)]
     (map (fn [y]
            (->> (filter #(= (:y %) y) maps)
                 (sort-by :y)
@@ -54,13 +58,39 @@
          zones)
        (draw-grid)))
 
+(defn zones-for-character-type [character]
+  (let [occurrences (filter #(= (:char %) character) chars)
+        [max-x max-y] (get-boundaries chars)]
+    (->> (mapcat #(zones-for-char % occurrences) occurrences)
+         (set)
+         (filter (fn [[x y]] (and (>= x 0) (>= y 0)
+                                  (<= x max-x) (<= y max-y)))))))
+
+(defn part1 []
+  (->> (get-unique-antenna-types)
+       (mapcat zones-for-character-type)
+       (set)
+       (count)))
+
 (comment
 
+  (->> (get-unique-antenna-types)
+       (mapcat zones-for-character-type)
+       (set)
+       (count))
+       ;(draw-zones grid))
 
-
-
-  (->> (zones-for-char (first zeros) zeros)
+  (->> (zones-for-character-type \A)
        (draw-zones grid))
+
+  (def character \A)
+
+  (->> (mapcat #(zones-for-char % zeros) zeros)
+       (set)
+       (filter (fn [[x y]] (and (>= x 0) (>= y 0))))
+       (draw-zones grid))
+       ;(zones-for-char (first zeros) zeros)
+       ;(draw-zones grid))
 
 
 
