@@ -2,7 +2,12 @@
   (:require [advent.utils :as u]))
 
 (defn load-data []
-   (->> (u/read-lines "resources/day7/small.txt")))
+   (->> (u/read-lines "resources/day7/input.txt")
+        (map (fn [l] (->> (u/split-and-trim l #":")
+                          ((fn [[a b]]
+                             [(u/parse-long a)
+                              (->> (u/split-and-trim b #" ")
+                                   (map u/parse-int))])))))))
 
 (defn do-numbers [a b remaining]
   (if (nil? b)
@@ -24,15 +29,18 @@
 (defn check-numbers [desired-result numbers]
   (->> (try-numbers numbers)
        (filter (partial = desired-result))
-       (count)))
+       (first)))
+
+(defn part1 []
+  (->> (load-data)
+       (map #(apply check-numbers %))
+       (filter some?)
+       (reduce +)))
 
 (comment
-  (first (rest [1]))
-  (first [])
-  (check-numbers [81 40 27] 3267)
 
-  (check-numbers 190 [10 19])
+  (apply check-numbers (first (load-data))))
 
 
-,)
+
 
