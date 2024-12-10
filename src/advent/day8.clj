@@ -46,21 +46,22 @@
 (defn replace-grid-item [grid yx char]
   (assoc-in grid yx char))
 
-(comment
-
-  (def zeros (filter #(= (:char %) \0) chars))
-
-  (->> (mapcat #(zones-for-char % zeros) zeros)
-       (set))
-
-  (def char (->> (filter #(= (:char %) \0) chars) (first)))
-
-  (->> (zones-for-char (first zeros) zeros)
-       (reduce
+(defn draw-zones [grid zones]
+  (->> (reduce
          (fn [acc [x y]]
            (replace-grid-item acc [y x] \#))
-         grid)
-       (draw-grid))
+         grid
+         zones)
+       (draw-grid)))
+
+(comment
+
+
+
+
+  (->> (zones-for-char (first zeros) zeros)
+       (draw-zones grid))
+
 
 
   (let [candidates (filter #(= (:char %) \0) chars)
