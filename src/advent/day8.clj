@@ -25,13 +25,14 @@
 (defn draw-grid [grid]
   (map #(do (println (apply str %)) %) grid))
 
+(defn get-unique-antenna-types []
+  (->> (map :char chars)
+       (filter (complement #{\.}))
+       (set)))
+
 (comment
+  (get-unique-antenna-types)
 
-  (draw-grid grid)
-
-  (def maps (flatten-to-maps grid))
-
-  ((maps-to-grid maps))
 
   (range 0 (inc 9)))
 
