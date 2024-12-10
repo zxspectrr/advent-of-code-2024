@@ -25,13 +25,13 @@
 (defn draw-grid [grid]
   (map #(do (println (apply str %)) %) grid))
 
-
-
 (comment
+
+  (draw-grid grid)
 
   (def maps (flatten-to-maps grid))
 
-  (maps-to-grid maps)
+  ((maps-to-grid maps))
 
   (range 0 (inc 9)))
 
