@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (def grid
-  (->> (u/read-lines "resources/day8/input.txt")
+  (->> (u/read-lines "resources/day8/small2.txt")
        (mapv #(reduce conj [] %))))
 
 (defn flatten-to-maps [grid]
@@ -17,6 +17,10 @@
 (defn get-boundaries [maps]
   [(->> (map :x maps) (reduce max))
    (->> (map :y maps) (reduce max))])
+
+(defn within-bounds [x y]
+  (let [[max-x max-y] (get-boundaries chars)]
+    (and (<= x max-x)) (<= y max-y)))
 
 (defn maps-to-grid [maps]
   (let [[_ max-y] (get-boundaries maps)]
@@ -58,12 +62,12 @@
        (draw-grid)))
 
 (defn zones-for-character-type [character]
-  (let [occurrences (filter #(= (:char %) character) chars)
-        [max-x max-y] (get-boundaries chars)]
+  (let [occurrences (filter #(= (:char %) character) chars)]
     (->> (mapcat #(zones-for-char % occurrences) occurrences)
          (set)
-         (filter (fn [[x y]] (and (>= x 0) (>= y 0)
-                                  (<= x max-x) (<= y max-y)))))))
+         (filter (fn [[x y]] (and (>= x 0)
+                                  (>= y 0)
+                                  (within-bounds x y)))))))
 
 (defn part1 []
   (->> (get-unique-antenna-types)
@@ -72,6 +76,31 @@
        (count)))
 
 (comment
+
+  (def start-pos [1 1])
+  (def distance [1 0])
+
+  (defn apply-distance [distance pos]
+    (let [[dx dy] distance
+          [px py] pos]
+      [(+ dx px) (+ dy py)]))
+
+  (def apply-fn (partial apply-distance [1 0]))
+  (apply-fn [1 1])
+
+  (take-while (fn [[x y]]
+                (and (< x 10) (< y 10)))
+              (iterate (partial apply-distance [1 2]) [1 1]))
+
+
+
+  (nth (iterate apply-fn [1 1]) 4)
+
+  (#(apply-distance [1 0] %) [1 1])
+
+  (take (iterate (partial apply-distance [1 0]) [1 1]))
+
+  ((partial apply-distance [1 0]) [1 1])
 
 
 
