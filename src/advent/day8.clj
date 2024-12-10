@@ -2,7 +2,7 @@
   (:require [advent.utils :as u]))
 
 (def grid
-  (->> (u/read-lines "resources/day8/small1.txt")
+  (->> (u/read-lines "resources/day8/small2.txt")
        (mapv #(reduce conj [] %))))
 
 (defn flatten-to-maps [grid]
@@ -27,8 +27,10 @@
 
 (defn get-unique-antenna-types []
   (->> (map :char chars)
-       (filter (complement #{\.}))
-       (set)))
+       (frequencies)
+       (filter (fn [[k v]]
+                 (and (> v 1) (not= \. k))))
+       (map (fn [[k _]] k))))
 
 (comment
   (get-unique-antenna-types)
