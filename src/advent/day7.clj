@@ -12,25 +12,24 @@
 (defn join-numbers [a b]
   (-> (str a b) u/parse-long))
 
-(defn do-numbers [a b remaining desired operators]
+(defn do-numbers [operators a b remaining desired]
   (if (nil? b)
     a
     (map (fn [op]
              (let [result (if (= op \|)
                             (join-numbers a b)
                             (op a b))]
-               (if (empty? remaining)
-                 result
-                 (if (> result desired)
-                   nil
-                   (do-numbers result (first remaining) (rest remaining) desired operators)))))
+               (cond
+                 (empty? remaining) result
+                 (> result desired) nil
+                 :else (do-numbers operators result (first remaining) (rest remaining) desired))))
          operators)))
 
 (defn try-numbers [operators desired numbers]
   (let [a (first numbers)
         b (second numbers)
         remaining (drop 2 numbers)]
-    (->> (do-numbers a b remaining desired operators)
+    (->> (do-numbers operators a b remaining desired)
          (flatten)
          (filter (partial = desired))
          (first))))
