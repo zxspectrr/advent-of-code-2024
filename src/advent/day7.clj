@@ -13,31 +13,35 @@
   (if (nil? b)
     a
     (map (fn [op]
-            (let [result (op a b)]
-              (if (empty? remaining)
-                result
-                (do-numbers result (first remaining) (rest remaining)))))
+             (let [result (op a b)]
+               (if (empty? remaining)
+                 result
+                 (do-numbers result (first remaining) (rest remaining)))))
          [+ - * /])))
 
-(defn try-numbers [numbers]
+
+(defn try-numbers [numbers desired]
   (let [a (first numbers)
         b (second numbers)
         remaining (rest (rest numbers))]
     (->> (do-numbers a b remaining)
-         (flatten))))
+         (flatten)
+         (filter (partial = desired))
+         (first))))
+
 
 (defn check-numbers [desired-result numbers]
-  (->> (try-numbers numbers)
-       (filter (partial = desired-result))
-       (first)))
+  (try-numbers numbers desired-result))
 
 (defn part1 []
   (->> (load-data)
-       (map #(apply check-numbers %))
+       (map-indexed (fn [idx x] (println idx) (apply check-numbers x)))
        (filter some?)
        (reduce +)))
 
 (comment
+
+  (check-numbers 84277 [8 4 278])
 
   (apply check-numbers (first (load-data))))
 
