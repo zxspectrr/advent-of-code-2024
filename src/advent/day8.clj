@@ -41,7 +41,8 @@
 (defn find-zone [source-xy destination-xy]
   (-> (find-distance source-xy destination-xy)
       (apply-distance destination-xy)
-      (vector)))
+      (vector)
+      (#(filter within-bounds? %))))
 
 (defn zones-for-char [char chars-of-type zone-fn]
   (let [siblings (filter #(not= % char) chars-of-type)]
@@ -50,9 +51,7 @@
 
 (defn zones-for-character-type [character zone-fn]
   (let [occurrences (filter #(= (:char %) character) chars)]
-    (->> (mapcat #(zones-for-char % occurrences zone-fn) occurrences)
-         (set)
-         (filter within-bounds?))))
+    (mapcat #(zones-for-char % occurrences zone-fn) occurrences)))
 
 (defn part1 []
   (->> (get-unique-antenna-types)
