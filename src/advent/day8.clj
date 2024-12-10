@@ -18,7 +18,7 @@
   [(->> (map :x maps) (reduce max))
    (->> (map :y maps) (reduce max))])
 
-(defn within-bounds [x y]
+(defn within-bounds? [[x y]]
   (let [[max-x max-y] (get-boundaries chars)]
     (and (<= x max-x)) (<= y max-y)))
 
@@ -46,9 +46,47 @@
     [(+ distance-x (:x destination))
      (+ distance-y (:y destination))]))
 
-(defn zones-for-char [char chars-of-type]
+(defn zones-for-char [char chars-of-type zone-fn]
   (let [siblings (filter #(not= % char) chars-of-type)]
-    (map #(find-zone char %) siblings)))
+    (map #(zone-fn char %) siblings)))
+
+(defn zones-for-character-type [character zone-fn]
+  (let [occurrences (filter #(= (:char %) character) chars)]
+    (->> (mapcat #(zones-for-char % occurrences zone-fn) occurrences)
+         (set)
+         (filter (fn [[x y]] (and (>= x 0)
+                                  (>= y 0)
+                                  (within-bounds? [x y])))))))
+
+(defn part1 []
+  (->> (get-unique-antenna-types)
+       (mapcat #(zones-for-character-type % find-zone))
+       (set)
+       (count)))
+
+(defn find-distance [[ax ay] [bx by]]
+  [(- bx ax) (- by ay)])
+
+(defn apply-distance [distance-xy pos-xy]
+  (let [[dx dy] distance-xy
+        [px py] pos-xy]
+    [(+ dx px) (+ dy py)]))
+
+(defn xy [item]
+  ((juxt :x :y) item))
+
+(defn find-repeating-antenna [source destination]
+  (let [source-xy (xy source)
+        destination-xy (xy destination)
+        distance (find-distance source-xy destination-xy)]
+    (take-while within-bounds?
+                (iterate (partial apply-distance distance) source-xy))))
+
+(defn part2 []
+  (->> (get-unique-antenna-types)
+       (mapcat #(zones-for-character-type % find-repeating-antenna))
+       (set)
+       (count)))
 
 (defn replace-grid-item [grid yx char]
   (assoc-in grid yx char))
@@ -61,21 +99,9 @@
          zones)
        (draw-grid)))
 
-(defn zones-for-character-type [character]
-  (let [occurrences (filter #(= (:char %) character) chars)]
-    (->> (mapcat #(zones-for-char % occurrences) occurrences)
-         (set)
-         (filter (fn [[x y]] (and (>= x 0)
-                                  (>= y 0)
-                                  (within-bounds x y)))))))
-
-(defn part1 []
-  (->> (get-unique-antenna-types)
-       (mapcat zones-for-character-type)
-       (set)
-       (count)))
-
 (comment
+
+
 
   (def start-pos [1 1])
   (def distance [1 0])
