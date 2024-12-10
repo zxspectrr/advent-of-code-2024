@@ -38,16 +38,15 @@
         [px py] pos-xy]
     [(+ dx px) (+ dy py)]))
 
-(defn find-zone [source destination]
-  (let [source-xy (map-to-pos source)
-        destination-xy (map-to-pos destination)]
-    (-> (find-distance source-xy destination-xy)
-        (apply-distance destination-xy)
-        (vector))))
+(defn find-zone [source-xy destination-xy]
+  (-> (find-distance source-xy destination-xy)
+      (apply-distance destination-xy)
+      (vector)))
 
 (defn zones-for-char [char chars-of-type zone-fn]
   (let [siblings (filter #(not= % char) chars-of-type)]
-    (mapcat #(zone-fn char %) siblings)))
+    (mapcat #(zone-fn (map-to-pos char)
+                      (map-to-pos %)) siblings)))
 
 (defn zones-for-character-type [character zone-fn]
   (let [occurrences (filter #(= (:char %) character) chars)]
@@ -61,10 +60,8 @@
        (set)
        (count)))
 
-(defn find-repeating-antenna [source destination]
-  (let [source-xy (map-to-pos source)
-        destination-xy (map-to-pos destination)
-        distance (find-distance source-xy destination-xy)]
+(defn find-repeating-antenna [source-xy destination-xy]
+  (let [distance (find-distance source-xy destination-xy)]
     (take-while within-bounds?
                 (iterate (partial apply-distance distance) source-xy))))
 
@@ -73,69 +70,3 @@
        (mapcat #(zones-for-character-type % find-repeating-antenna))
        (set)
        (count)))
-
-
-
-(comment
-
-
-  (defn maps-to-grid [maps]
-    (let [[_ max-y] (get-boundaries maps)]
-      (map (fn [y]
-             (->> (filter #(= (:y %) y) maps)
-                  (sort-by :y)
-                  (map :char)))
-           (range 0 (inc max-y)))))
-
-  (defn draw-grid [grid]
-    (map #(do (println (apply str %)) %) grid))
-
-  (defn replace-grid-item [grid yx char]
-    (assoc-in grid yx char))
-
-  (defn draw-zones [grid zones]
-    (->> (reduce
-           (fn [acc [x y]]
-             (replace-grid-item acc [y x] \#))
-           grid
-           zones)
-         (draw-grid))
-
-
-    (def char (first chars-of-type))
-    (def zone-fn find-repeating-antenna)
-    (def chars-of-type (filter #(= (:char %) \A) chars))
-
-    char chars-of-type zone-fn
-
-    (def start-pos [1 1])
-    (def distance [1 0])
-
-    (defn apply-distance [distance pos]
-      (let [[dx dy] distance
-            [px py] pos]
-        [(+ dx px) (+ dy py)]))
-
-    (def apply-fn (partial apply-distance [1 0]))
-    (apply-fn [1 1])
-
-    (take-while (fn [[x y]]
-                  (and (< x 10) (< y 10)))
-                (iterate (partial apply-distance [1 2]) [1 1]))
-
-
-
-    (nth (iterate apply-fn [1 1]) 4)
-
-    (#(apply-distance [1 0] %) [1 1])
-
-    (take (iterate (partial apply-distance [1 0]) [1 1]))
-
-    ((partial apply-distance [1 0]) [1 1])
-
-
-
-    (str "test"),))
-
-
-
