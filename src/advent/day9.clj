@@ -1,24 +1,25 @@
 (ns advent.day9
   (:require [advent.utils :as u]))
-  ;(:require [advent.utils :as u]))
 
 (def diskmap
-  (->> (slurp "resources/day9/small.txt")
-       (partition-all 3 3)))
-       ;(reduce (fn [acc x]
-       ;          {})
-       ;        {:i 0})))
+  (slurp "resources/day9/small.txt"))
 
-
-(comment
-  (->> (partition-all 2 2 "12345")
+(defn expand-diskmap [diskmap]
+  (->> (partition-all 2 2 diskmap)
        (map-indexed (fn [idx [file free]]
                       {:id idx
                        :file (u/parse-int (str file))
-                       :free (if free (u/parse-int (str free)) 0)})))
-  ;(map ""))
+                       :free (if free (u/parse-int (str free)) 0)}))
+       (map (fn [{:keys [id file free]}]
+              (->> (let [filestr (apply str (repeat file id))
+                         freestr (apply str (repeat free \.))]
+                     (apply str [filestr freestr])))))
+       (apply str)))
 
 
+(comment
 
+  ()
 
+  (repeat 2 "test")
   "")
