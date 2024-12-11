@@ -4,22 +4,24 @@
 (def diskmap
   (slurp "resources/day9/small.txt"))
 
+(defn char-to-int [char]
+  (if char (u/parse-int (str char)) 0))
+
 (defn expand-diskmap [diskmap]
   (->> (partition-all 2 2 diskmap)
-       (map-indexed (fn [idx [file free]]
-                      {:id idx
-                       :file (u/parse-int (str file))
-                       :free (if free (u/parse-int (str free)) 0)}))
-       (map (fn [{:keys [id file free]}]
-              (->> (let [filestr (apply str (repeat file id))
-                         freestr (apply str (repeat free \.))]
-                     (apply str [filestr freestr])))))
+       (map-indexed 
+         (fn [idx [file free]]
+           (let [file-int (char-to-int file)
+                 free-int (char-to-int free)
+                 filestr (apply str (repeat file-int idx))
+                 freestr (apply str (repeat free-int \.))]
+             (apply str [filestr freestr]))))
        (apply str)))
 
 
 (comment
 
-  ()
+  (expand-diskmap diskmap)
 
   (repeat 2 "test")
   "")
