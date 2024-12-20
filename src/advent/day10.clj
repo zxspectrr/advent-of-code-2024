@@ -42,7 +42,6 @@
   (let [next-points (find-next-points point)]
     (cond
       (trail-end? point) (conj end-points point)
-      (outside-grid? (:y point) (:x point)) end-points
       (empty? next-points) end-points
       :else (reduce walk end-points next-points))))
 
@@ -57,5 +56,4 @@
        (reduce +)))
 
 (comment
-
   "")
