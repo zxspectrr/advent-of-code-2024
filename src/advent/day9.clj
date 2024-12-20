@@ -3,7 +3,7 @@
             [clojure.string :as str]))
 
 (def diskmap
-  (slurp "resources/day9/small.txt"))
+  (slurp "resources/day9/input.txt"))
 
 (defn char-to-int [char]
   (if char (u/parse-int (str char)) 0))
@@ -20,45 +20,42 @@
        (apply str)
        (vec)))
 
+(defn compacted? [blocks]
+  (->> (apply str blocks)
+       (re-seq #"\d+")
+       (count)
+       (= 1)))
+
+(defn extract-numbers [chars]
+  (filter #{\0 \1 \2 \3 \4 \5 \6 \7 \8 \9} chars))
+
 (defn shift-block [blocks]
   (let [blocks-str (apply str blocks)
-        number (last (filter #{\1 \2 \3 \4 \5 \6 \7 \8 \9} blocks))
+        number (last (extract-numbers blocks))
         idxa (str/last-index-of blocks-str number)
         idxb (str/index-of blocks-str \.)]
-    (-> (assoc blocks idxb number)
-        (assoc idxa \.))))
+    (if (compacted? blocks)
+      blocks
+      (-> (assoc blocks idxb number)
+          (assoc idxa \.)))))
+
+(defn compact-blocks [blocks]
+  (->> (take-while (complement compacted?) (iterate shift-block blocks))
+       (last)
+       (shift-block)))
+
+(defn build-checksum [compacted]
+  (->> (extract-numbers compacted)
+       (map-indexed (fn [idx x]
+                      (* idx (char-to-int x))))
+       (reduce +)))
+
+(defn part1 []
+  (->> (expand-diskmap diskmap)
+       (compact-blocks)))
+       ;build-checksum))
 
 
 (comment
-  (def blocks expanded)
 
-  (->> (shift-block blocks)
-       (apply str))
-
-
-
-
-  (str/last-index-of (apply str expanded) \9)
-  (str/index-of (apply str expanded) \.)
-
-  (.indexOf expanded \0)
-
-  (last (filter #{\1 \2 \3 \4 \5 \6 \7 \8 \9} expanded))
-  (first (filter #{\.} expanded))
-
-  (last (re-seq #"\d" (str expanded)))
-
-  (->> (re-matcher #"\d" (str expanded))
-       (re-seq))
-
-
-
-
-
-  (def expanded (expand-diskmap diskmap))
-
-  (vec "test")
-  (expand-diskmap diskmap)
-
-  (repeat 2 "test")
   "")
