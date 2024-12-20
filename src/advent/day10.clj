@@ -1,6 +1,5 @@
 (ns advent.day10
-  (:require [advent.utils :as u]
-            [clojure.string :as str]))
+  (:require [advent.utils :as u]))
 
 (def grid
   (->> (u/read-lines "resources/day10/input.txt")
@@ -34,8 +33,7 @@
 (defn find-next-points [point]
   (let [{:keys [height]} point]
     (->> (find-neighbours point)
-         (filter #(= (- (:height %) height)
-                     1)))))
+         (filter #(-> (- (:height %) height) (= 1))))))
 
 (defn trail-end? [point]
   (= (:height point) 9))
@@ -48,13 +46,14 @@
       (empty? next-points) end-points
       :else (reduce walk end-points next-points))))
 
-(defn find-end-points [starting-point]
-  (->> (walk [] starting-point)
-       (distinct)))
-
 (defn part1 []
   (->> (find-starting-points)
-       (map #(-> (find-end-points %) (count)))
+       (map #(->> (walk [] %) (distinct) (count)))
+       (reduce +)))
+
+(defn part2 []
+  (->> (find-starting-points)
+       (map #(->> (walk [] %) (count)))
        (reduce +)))
 
 (comment
