@@ -26,11 +26,11 @@
 
 
 (defn find-neighbours [point]
-  (let [{:keys [height x y]} point
+  (let [{:keys [x y]} point
         neighbour-coords [[(inc y) x] [(dec y) x]
-                          [y (inc x)] [y (dec x)]]
-        neigbours (map find-item neighbour-coords)]
-    neigbours))
+                          [y (inc x)] [y (dec x)]]]
+    (->> (map find-item neighbour-coords)
+         (filter #(not (outside-grid? (:y %) (:x %)))))))
 
 (defn walk [point]
   (let [{:keys [height x y]} point]))
@@ -39,7 +39,7 @@
 
 (comment
 
-  (find-neighbours {:height 1 :x 3 :y 3})
+  (find-neighbours {:height 1 :x 7 :y 0})
   (find-item [1 2])
   (outside-grid? 0 -1)
 
