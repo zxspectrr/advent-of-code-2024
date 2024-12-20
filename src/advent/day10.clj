@@ -3,7 +3,7 @@
             [clojure.string :as str]))
 
 (def grid
-  (->> (u/read-lines "resources/day10/small.txt")
+  (->> (u/read-lines "resources/day10/input.txt")
        (mapv (fn [l] (reduce (fn [acc c] (conj acc (u/parse-int (str c)))) [] l)))))
 
 (def grid-list
@@ -13,7 +13,7 @@
        (flatten)))
 
 (defn find-item [[y x]]
-  {:y y :x x :height (get-in grid [y x])})
+  {:height (get-in grid [y x]) :y y :x x})
 
 (defn find-starting-points []
   (filter #(= 0 (:height %)) grid-list))
@@ -24,27 +24,39 @@
     (or (< y 0) (< x 0)
         (> y max-y) (> x max-x))))
 
-
 (defn find-neighbours [point]
   (let [{:keys [x y]} point
-        neighbour-coords [[(inc y) x] [(dec y) x]
-                          [y (inc x)] [y (dec x)]]]
+        neighbour-coords [[y (inc x)] [(inc y) x]
+                          [y (dec x)] [(dec y) x]]]
     (->> (map find-item neighbour-coords)
          (filter #(not (outside-grid? (:y %) (:x %)))))))
 
-(defn walk [point]
-  (let [{:keys [height x y]} point]))
+(defn find-next-points [point]
+  (let [{:keys [height]} point]
+    (->> (find-neighbours point)
+         (filter #(= (- (:height %) height)
+                     1)))))
 
-(defn find-end-points [starting-point])
+(defn trail-end? [point]
+  (= (:height point) 9))
+
+(defn walk [end-points point]
+  (let [next-points (find-next-points point)]
+    (cond
+      (trail-end? point) (conj end-points point)
+      (outside-grid? (:y point) (:x point)) end-points
+      (empty? next-points) end-points
+      :else (reduce walk end-points next-points))))
+
+(defn find-end-points [starting-point]
+  (->> (walk [] starting-point)
+       (distinct)))
+
+(defn part1 []
+  (->> (find-starting-points)
+       (map #(-> (find-end-points %) (count)))
+       (reduce +)))
 
 (comment
 
-  (find-neighbours {:height 1 :x 7 :y 0})
-  (find-item [1 2])
-  (outside-grid? 0 -1)
-
-  (find-item [0 3])
-
-
-  (u/parse-int (str \2))
   "")
