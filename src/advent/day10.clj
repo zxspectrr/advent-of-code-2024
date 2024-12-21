@@ -3,7 +3,7 @@
 
 (def grid
   (->> (u/read-lines "resources/day10/input.txt")
-       (mapv (fn [l] (reduce (fn [acc c] (conj acc (u/parse-int (str c)))) [] l)))))
+       (mapv (fn [l] (mapv (fn [c] (-> (str c) (u/parse-int))) l)))))
 
 (def grid-list
   (->> (map-indexed (fn [idxy ys]
